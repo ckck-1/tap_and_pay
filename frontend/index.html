@@ -23,7 +23,7 @@
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900 min-h-screen">
-    <!-- Add this inside <body> at the very top -->
+<!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="fixed inset-0 bg-slate-900 bg-opacity-95 flex items-center justify-center z-[200]">
     <div class="bg-white rounded-3xl p-8 w-[360px] flex flex-col gap-6 shadow-2xl">
         <h2 class="text-2xl font-bold text-slate-900 text-center">Terminal Login</h2>
@@ -31,6 +31,147 @@
         <input type="password" id="login-pass" placeholder="PIN" class="w-full p-4 rounded-2xl border ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-600 outline-none font-semibold">
         <button onclick="login()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all active:scale-[0.98]">LOGIN</button>
         <div id="login-msg" class="text-rose-500 text-sm text-center hidden"></div>
+    </div>
+</div>
+
+<div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
+
+<div class="max-w-6xl mx-auto p-4 md:p-8">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-200">
+                <i data-lucide="contactless" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-800 tracking-tight flex items-center gap-2">
+                    TAP<span class="text-indigo-600 font-black italic">PAY</span>
+                    <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full text-slate-500 font-bold uppercase tracking-widest">v2.0</span>
+                </h1>
+                <div id="status" class="flex items-center gap-2 text-[11px] font-bold text-slate-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> MQTT DISCONNECTED
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-4 items-center bg-white p-2 pr-6 rounded-2xl shadow-sm border border-slate-100">
+            <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">
+                <i data-lucide="cpu" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Terminal ID</p>
+                <p class="text-sm font-bold text-slate-700 mono">ESP8266_team_cr7</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- LEFT PANEL: CARD + LOG -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-white relative overflow-hidden h-full flex flex-col justify-center min-h-[400px]" id="card-context">
+                <div id="no-card" class="relative z-10 flex flex-col items-center text-center">
+                    <div class="relative w-32 h-32 mb-8">
+                        <div class="absolute inset-0 bg-indigo-100 rounded-full scanner-ring"></div>
+                        <div class="absolute inset-0 bg-indigo-50 rounded-full scale-125 scanner-ring" style="animation-delay: 0.5s"></div>
+                        <div class="relative bg-white w-32 h-32 rounded-full shadow-inner flex items-center justify-center border border-indigo-50">
+                            <i data-lucide="nfc" class="w-12 h-12 text-indigo-400"></i>
+                        </div>
+                    </div>
+                    <h2 id="no-card-text" class="text-xl font-bold text-slate-800 mb-2">Ready to Scan</h2>
+                    <p class="text-slate-400 text-sm max-w-[200px]">Hold your RFID card near the reader to begin session</p>
+                    <span id="countdown-text" class="hidden mt-4 bg-amber-50 text-amber-700 px-4 py-2 rounded-full font-bold text-xs border border-amber-100"></span>
+                </div>
+
+                <div id="active-card" class="hidden relative z-10 space-y-8">
+                    <div class="flex items-center gap-5">
+                        <div class="w-20 h-20 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-[2rem] flex items-center justify-center text-white shadow-xl shadow-indigo-200 rotate-3">
+                            <i data-lucide="shield-check" class="w-10 h-10"></i>
+                        </div>
+                        <div>
+                            <h2 id="view-name" class="text-3xl font-800 text-slate-900 leading-tight tracking-tight">---</h2>
+                            <p id="view-uid" class="mono text-xs font-bold text-indigo-600 tracking-wider">UID: ---</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950 rounded-3xl p-8 text-white relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Available Balance</p>
+                        <div class="flex items-baseline gap-2">
+                            <span id="view-balance" class="text-5xl font-bold tracking-tighter">0</span>
+                            <span class="text-indigo-400 font-bold text-sm">RWF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl flex-grow">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> Activity Log
+                    </h3>
+                    <div class="flex gap-1">
+                        <div class="w-2 h-2 rounded-full bg-slate-700"></div>
+                        <div class="w-2 h-2 rounded-full bg-slate-700"></div>
+                    </div>
+                </div>
+                <div id="log" class="space-y-3 h-[180px] overflow-y-auto pr-2 scrollbar-hide mono text-[11px]">
+                    <div class="text-slate-600 italic">_ system initialized...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: PAYMENT, TOP-UP, E-COMMERCE -->
+        <div class="lg:col-span-7 flex flex-col gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- TOP-UP SECTION -->
+                <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                            <i data-lucide="wallet" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 tracking-tight">Top-up</h3>
+                    </div>
+                    <div class="space-y-4 h-full flex flex-col justify-between">
+                        <div class="relative">
+                            <input type="number" id="top-amt" placeholder="0.00" class="w-full p-5 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none text-2xl font-bold transition-all">
+                            <span class="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">RWF</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 px-2 font-medium">Verify customer identification before adding digital funds.</p>
+                        <button onclick="doAction('topup')" class="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-xl shadow-emerald-100">DEPOSIT FUNDS</button>
+                    </div>
+                </section>
+
+                <!-- E-COMMERCE PRODUCTS SECTION -->
+                <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800 tracking-tight">Products</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
+                            <h4 class="font-semibold text-slate-900">Product A</h4>
+                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">500</span> RWF</p>
+                            <button onclick="buyProduct('Product A', 500)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
+                        </div>
+                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
+                            <h4 class="font-semibold text-slate-900">Product B</h4>
+                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">1200</span> RWF</p>
+                            <button onclick="buyProduct('Product B', 1200)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
+                        </div>
+                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
+                            <h4 class="font-semibold text-slate-900">Product C</h4>
+                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">800</span> RWF</p>
+                            <button onclick="buyProduct('Product C', 800)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
+                        </div>
+                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
+                            <h4 class="font-semibold text-slate-900">Product D</h4>
+                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">1500</span> RWF</p>
+                            <button onclick="buyProduct('Product D', 1500)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -55,10 +196,7 @@ async function login() {
         const data = await res.json();
 
         if (data.success) {
-            // Hide login overlay
             document.getElementById('login-overlay').classList.add('hidden');
-
-            // Optional: show default card if it is the default user
             curUid = data.card.uid;
             showCard(data.card);
             addLog(`Logged in as ${data.card.holder_name}`, 'success');
@@ -72,360 +210,142 @@ async function login() {
         console.error(err);
     }
 }
-</script>
-    
-    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
 
-    <div class="max-w-6xl mx-auto p-4 md:p-8">
-        
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
-            <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-200">
-                    <i data-lucide="contactless" class="w-6 h-6 text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-800 tracking-tight flex items-center gap-2">
-                        TAP<span class="text-indigo-600 font-black italic">PAY</span>
-                        <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded-full text-slate-500 font-bold uppercase tracking-widest">v2.0</span>
-                    </h1>
-                    <div id="status" class="flex items-center gap-2 text-[11px] font-bold text-slate-400">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> MQTT DISCONNECTED
-                    </div>
-                </div>
-            </div>
-            <div class="flex gap-4 items-center bg-white p-2 pr-6 rounded-2xl shadow-sm border border-slate-100">
-                <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500">
-                    <i data-lucide="cpu" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Terminal ID</p>
-                    <p class="text-sm font-bold text-slate-700 mono">ESP8266_team_cr7</p>
-                </div>
-            </div>
-        </header>
+const socket = io();
+let curUid = null;
+let removalCountdown = null;
+let countdownValue = 5;
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <div class="lg:col-span-5 flex flex-col gap-6">
-                
-                <div class="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-white relative overflow-hidden h-full flex flex-col justify-center min-h-[400px]" id="card-context">
-                    <div id="no-card" class="relative z-10 flex flex-col items-center text-center">
-                        <div class="relative w-32 h-32 mb-8">
-                            <div class="absolute inset-0 bg-indigo-100 rounded-full scanner-ring"></div>
-                            <div class="absolute inset-0 bg-indigo-50 rounded-full scale-125 scanner-ring" style="animation-delay: 0.5s"></div>
-                            <div class="relative bg-white w-32 h-32 rounded-full shadow-inner flex items-center justify-center border border-indigo-50">
-                                <i data-lucide="nfc" class="w-12 h-12 text-indigo-400"></i>
-                            </div>
-                        </div>
-                        <h2 id="no-card-text" class="text-xl font-bold text-slate-800 mb-2">Ready to Scan</h2>
-                        <p class="text-slate-400 text-sm max-w-[200px]">Hold your RFID card near the reader to begin session</p>
-                        <span id="countdown-text" class="hidden mt-4 bg-amber-50 text-amber-700 px-4 py-2 rounded-full font-bold text-xs border border-amber-100"></span>
-                    </div>
+lucide.createIcons();
 
-                    <div id="active-card" class="hidden relative z-10 space-y-8">
-                        <div class="flex items-center gap-5">
-                            <div class="w-20 h-20 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-[2rem] flex items-center justify-center text-white shadow-xl shadow-indigo-200 rotate-3">
-                                <i data-lucide="shield-check" class="w-10 h-10"></i>
-                            </div>
-                            <div>
-                                <h2 id="view-name" class="text-3xl font-800 text-slate-900 leading-tight tracking-tight">---</h2>
-                                <p id="view-uid" class="mono text-xs font-bold text-indigo-600 tracking-wider">UID: ---</p>
-                            </div>
-                        </div>
+socket.on('connect', () => {
+    const el = document.getElementById('status');
+    el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> MQTT CONNECTED';
+    el.className = 'flex items-center gap-2 text-[11px] font-bold text-emerald-600';
+});
 
-                        <div class="bg-slate-950 rounded-3xl p-8 text-white relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-2">Available Balance</p>
-                            <div class="flex items-baseline gap-2">
-                                <span id="view-balance" class="text-5xl font-bold tracking-tighter">0</span>
-                                <span class="text-indigo-400 font-bold text-sm">RWF</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+socket.on('card_scanned', (data) => {
+    if (removalCountdown) {
+        clearInterval(removalCountdown);
+        removalCountdown = null;
+        document.getElementById('countdown-text').classList.add('hidden');
+        document.getElementById('no-card-text').innerText = "Ready to Scan";
+    }
+    curUid = data.uid;
+    if (data.exists) {
+        showCard(data.card);
+        addLog(`Recognized: ${data.card.holder_name} (RWF ${data.card.balance})`, 'success');
+        document.getElementById('reg-modal').classList.add('hidden');
+    } else {
+        document.getElementById('reg-uid').innerText = data.uid;
+        document.getElementById('reg-modal').classList.remove('hidden');
+        addLog(`Unknown card detected: ${data.uid}`, 'warn');
+    }
+});
 
-                <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl flex-grow">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                            <i data-lucide="terminal" class="w-4 h-4"></i> Activity Log
-                        </h3>
-                        <div class="flex gap-1">
-                            <div class="w-2 h-2 rounded-full bg-slate-700"></div>
-                            <div class="w-2 h-2 rounded-full bg-slate-700"></div>
-                        </div>
-                    </div>
-                    <div id="log" class="space-y-3 h-[180px] overflow-y-auto pr-2 scrollbar-hide mono text-[11px]">
-                        <div class="text-slate-600 italic">_ system initialized...</div>
-                    </div>
-                </div>
-            </div>
+socket.on('card_balance', (data) => {
+    if (data.uid === curUid) {
+        document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
+        addLog(`Remote Balance Update: RWF ${data.new_balance}`, 'info');
+    }
+});
 
-            <div class="lg:col-span-7 flex flex-col gap-8">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
-                        <div class="flex items-center gap-4 mb-8">
-                            <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
-                                <i data-lucide="shopping-bag" class="w-6 h-6"></i>
-                            </div>
-                            <h3 class="font-bold text-slate-800 tracking-tight">Payment</h3>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="relative">
-                                <input type="number" id="pay-amt" placeholder="0.00" class="w-full p-5 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 focus:ring-2 focus:ring-rose-500 outline-none text-2xl font-bold transition-all">
-                                <span class="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">RWF</span>
-                            </div>
-                            <div class="relative">
-                                <i data-lucide="lock" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                                <input type="password" id="pay-pin" placeholder="Enter PIN" class="w-full p-5 pl-12 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 focus:ring-2 focus:ring-rose-500 outline-none transition-all">
-                                <button type="button" onclick="togglePass('pay-pin', 'eye-pay')" class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500">
-                                    <i id="eye-pay" data-lucide="eye" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                            <button onclick="doAction('pay')" class="w-full py-5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-rose-600 active:scale-[0.98] transition-all shadow-lg shadow-rose-100">PROCESS SALE</button>
-                        </div>
-                    </section>
+socket.on('card_removed', (data) => {
+    addLog(`Device connection lost for ${data.uid}`, 'error');
+    countdownValue = 5;
+    document.getElementById('no-card-text').innerText = "Card Lost!";
+    const countdownEl = document.getElementById('countdown-text');
+    countdownEl.classList.remove('hidden');
+    countdownEl.innerText = `Session expires in ${countdownValue}s`;
 
-                    <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
-                        <div class="flex items-center gap-4 mb-8">
-                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                                <i data-lucide="wallet" class="w-6 h-6"></i>
-                            </div>
-                            <h3 class="font-bold text-slate-800 tracking-tight">Top-up</h3>
-                        </div>
-                        <div class="space-y-4 h-full flex flex-col justify-between">
-                            <div class="relative">
-                                <input type="number" id="top-amt" placeholder="0.00" class="w-full p-5 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none text-2xl font-bold transition-all">
-                                <span class="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">RWF</span>
-                            </div>
-                            <p class="text-[10px] text-slate-400 px-2 font-medium">Verify customer identification before adding digital funds.</p>
-                            <button onclick="doAction('topup')" class="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-xl shadow-emerald-100">DEPOSIT FUNDS</button>
-                        </div>
-                    </section>
-                </div>
-
-                <div id="reg-modal" class="hidden bg-indigo-600 rounded-[2.5rem] p-1 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                    <div class="bg-white rounded-[2.4rem] p-8 h-full">
-                        <div class="flex items-center gap-6 mb-8">
-                            <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-[1.5rem] flex items-center justify-center">
-                                <i data-lucide="user-plus" class="w-8 h-8"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-800 text-slate-900">New Card Identity</h2>
-                                <p class="text-slate-500 text-sm italic">Assigning UID: <span id="reg-uid" class="mono font-bold text-indigo-600"></span></p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="reg-name" placeholder="Customer Name" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-semibold">
-                            <input type="number" id="reg-init" placeholder="Initial Deposit (RWF)" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-semibold">
-                            <div class="relative md:col-span-2">
-                                <input type="password" id="reg-pass" placeholder="Assign 4-Digit Secure PIN" class="w-full p-5 bg-slate-50 rounded-2xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                                <button type="button" onclick="togglePass('reg-pass', 'eye-reg')" class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300">
-                                    <i id="eye-reg" data-lucide="eye" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                            <button id="reg-btn" onclick="register()" class="md:col-span-2 py-5 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.99]">INITIALIZE DIGITAL WALLET</button>
-                            <button onclick="closeModal()" class="md:col-span-2 py-2 text-slate-400 font-bold text-xs hover:text-rose-500 transition uppercase tracking-widest">Discard Entry</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const socket = io();
-        let curUid = null;
-        let removalCountdown = null;
-        let countdownValue = 5;
-
-        lucide.createIcons();
-
-        socket.on('connect', () => {
-            const el = document.getElementById('status');
-            el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> MQTT CONNECTED';
-            el.className = 'flex items-center gap-2 text-[11px] font-bold text-emerald-600';
-        });
-
-        socket.on('card_scanned', (data) => {
-            if (removalCountdown) {
-                clearInterval(removalCountdown);
-                removalCountdown = null;
-                document.getElementById('countdown-text').classList.add('hidden');
-                document.getElementById('no-card-text').innerText = "Ready to Scan";
-            }
-            curUid = data.uid;
-            if (data.exists) {
-                showCard(data.card);
-                addLog(`Recognized: ${data.card.holder_name} (RWF ${data.card.balance})`, 'success');
-                document.getElementById('reg-modal').classList.add('hidden');
-            } else {
-                document.getElementById('reg-uid').innerText = data.uid;
-                document.getElementById('reg-modal').classList.remove('hidden');
-                addLog(`Unknown card detected: ${data.uid}`, 'warn');
-            }
-        });
-
-        socket.on('card_balance', (data) => {
-            if (data.uid === curUid) {
-                document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
-                addLog(`Remote Balance Update: RWF ${data.new_balance}`, 'info');
-            }
-        });
-
-        socket.on('card_removed', (data) => {
-            addLog(`Device connection lost for ${data.uid}`, 'error');
-            countdownValue = 5;
-            document.getElementById('no-card-text').innerText = "Card Lost!";
-            const countdownEl = document.getElementById('countdown-text');
-            countdownEl.classList.remove('hidden');
+    removalCountdown = setInterval(() => {
+        countdownValue--;
+        if (countdownValue > 0) {
             countdownEl.innerText = `Session expires in ${countdownValue}s`;
-            
-            removalCountdown = setInterval(() => {
-                countdownValue--;
-                if (countdownValue > 0) {
-                    countdownEl.innerText = `Session expires in ${countdownValue}s`;
-                } else {
-                    clearInterval(removalCountdown);
-                    removalCountdown = null;
-                    curUid = null;
-                    document.getElementById('no-card').classList.remove('hidden');
-                    document.getElementById('active-card').classList.add('hidden');
-                    document.getElementById('view-name').innerText = '---';
-                    document.getElementById('view-uid').innerText = 'UID: ---';
-                    document.getElementById('view-balance').innerText = '0';
-                    document.getElementById('reg-modal').classList.add('hidden');
-                    document.getElementById('countdown-text').classList.add('hidden');
-                    document.getElementById('no-card-text').innerText = "Ready to Scan";
-                    addLog('System reset: Session closed.');
-                }
-            }, 1000);
-        });
-
-        function showCard(card) {
-            document.getElementById('no-card').classList.add('hidden');
-            document.getElementById('active-card').classList.remove('hidden');
-            document.getElementById('view-name').innerText = card.holder_name;
-            document.getElementById('view-uid').innerText = `UID: ${card.uid}`;
-            document.getElementById('view-balance').innerText = card.balance.toLocaleString();
-        }
-
-        function togglePass(inputId, iconId) {
-            const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.setAttribute('data-lucide', 'eye-off');
-            } else {
-                input.type = 'password';
-                icon.setAttribute('data-lucide', 'eye');
-            }
-            lucide.createIcons();
-        }
-
-        async function doAction(type) {
-            if (!curUid) {
-                showToast('Action failed: No card active', 'error');
-                return;
-            }
-            const amtInput = document.getElementById(type === 'pay' ? 'pay-amt' : 'top-amt');
-            const pinInput = document.getElementById('pay-pin');
-            
-            const payload = { 
-                uid: curUid, 
-                amount: Number(amtInput.value), 
-                passcode: type === 'pay' ? pinInput.value : "" 
-            };
-
-            const res = await fetch(`/api/${type}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                showToast(`Success: RWF ${payload.amount}`, 'success');
-                addLog(`${type.toUpperCase()} approved: RWF ${payload.amount}`, 'success');
-                amtInput.value = '';
-                if(pinInput) pinInput.value = '';
-            } else {
-                showToast(data.error, 'error');
-                addLog(`Declined: ${data.error}`, 'error');
-            }
-        }
-
-        async function register() {
-            const btn = document.getElementById('reg-btn');
-            const body = {
-                uid: curUid,
-                holder_name: document.getElementById('reg-name').value,
-                amount: Number(document.getElementById('reg-init').value),
-                passcode: document.getElementById('reg-pass').value
-            };
-
-            if (!body.holder_name || !body.passcode) {
-                showToast('Details required for registration', 'error');
-                return;
-            }
-            
-            btn.innerText = "Syncing with cloud...";
-            btn.disabled = true;
-
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(body)
-            });
-
-            if (res.ok) {
-                showToast('Account Created', 'success');
-                setTimeout(() => location.reload(), 800);
-            } else {
-                showToast('Registration Failed', 'error');
-                btn.innerText = "CREATE WALLET";
-                btn.disabled = false;
-            }
-        }
-
-        function addLog(msg, type = 'info') {
-            const logBox = document.getElementById('log');
-            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            let color = 'text-slate-500';
-            if (type === 'success') color = 'text-emerald-400';
-            if (type === 'error') color = 'text-rose-400';
-            if (type === 'warn') color = 'text-amber-400';
-
-            logBox.innerHTML = `<div class="flex gap-2">
-                <span class="text-slate-700 font-bold">[${time}]</span>
-                <span class="${color}">${msg}</span>
-            </div>` + logBox.innerHTML;
-        }
-
-        function closeModal() {
+        } else {
+            clearInterval(removalCountdown);
+            removalCountdown = null;
+            curUid = null;
+            document.getElementById('no-card').classList.remove('hidden');
+            document.getElementById('active-card').classList.add('hidden');
+            document.getElementById('view-name').innerText = '---';
+            document.getElementById('view-uid').innerText = 'UID: ---';
+            document.getElementById('view-balance').innerText = '0';
             document.getElementById('reg-modal').classList.add('hidden');
+            document.getElementById('countdown-text').classList.add('hidden');
+            document.getElementById('no-card-text').innerText = "Ready to Scan";
+            addLog('System reset: Session closed.');
         }
+    }, 1000);
+});
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-indigo-600';
-            const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
-            
-            toast.className = `${bg} text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-3 transform translate-y-4 opacity-0 transition-all duration-300 min-w-[280px]`;
-            toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i><span class="font-bold text-sm">${message}</span>`;
-            
-            container.appendChild(toast);
-            lucide.createIcons();
-            
-            setTimeout(() => { toast.classList.remove('translate-y-4', 'opacity-0'); }, 10);
-            setTimeout(() => {
-                toast.classList.add('translate-y-4', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+function showCard(card) {
+    document.getElementById('no-card').classList.add('hidden');
+    document.getElementById('active-card').classList.remove('hidden');
+    document.getElementById('view-name').innerText = card.holder_name;
+    document.getElementById('view-uid').innerText = `UID: ${card.uid}`;
+    document.getElementById('view-balance').innerText = card.balance.toLocaleString();
+}
+
+function addLog(msg, type = 'info') {
+    const log = document.getElementById('log');
+    const colors = { info: 'text-slate-400', success: 'text-emerald-400', warn: 'text-amber-400', error: 'text-rose-400' };
+    const div = document.createElement('div');
+    div.className = `mono text-[11px] ${colors[type] || 'text-slate-400'}`;
+    div.textContent = `_ ${msg}`;
+    log.prepend(div);
+}
+
+function showToast(msg, type = 'info') {
+    const colors = { info: 'bg-slate-800 text-white', success: 'bg-emerald-600 text-white', error: 'bg-rose-500 text-white', warn: 'bg-amber-500 text-white' };
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-3 rounded-xl shadow-lg ${colors[type] || colors.info} font-bold text-sm`;
+    toast.innerText = msg;
+    document.getElementById('toast-container').appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 4000);
+}
+
+async function doAction(action) {
+    if (!curUid) { showToast('No active card', 'error'); return; }
+    if (action === 'topup') {
+        const amt = parseInt(document.getElementById('top-amt').value);
+        if (!amt || amt <= 0) { showToast('Invalid amount', 'error'); return; }
+        const res = await fetch('/api/topup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ uid: curUid, amount: amt })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
+            showToast(`Added RWF ${amt}`, 'success');
+            addLog(`Top-up: RWF ${amt}`, 'success');
+        } else {
+            showToast(data.error, 'error');
+            addLog(`Top-up failed: ${data.error}`, 'error');
         }
-    </script>
+    }
+}
+
+async function buyProduct(name, price) {
+    if (!curUid) { showToast('No active card', 'error'); return; }
+    if (!confirm(`Buy ${name} for RWF ${price}?`)) return;
+
+    const res = await fetch('/api/pay', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ uid: curUid, amount: price, passcode: '' })
+    });
+    const data = await res.json();
+    if (data.success) {
+        document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
+        showToast(`${name} purchased! -${price} RWF`, 'success');
+        addLog(`Bought ${name} for RWF ${price}`, 'success');
+    } else {
+        showToast(data.error, 'error');
+        addLog(`Purchase failed: ${data.error}`, 'error');
+    }
+}
+</script>
 </body>
 </html>
