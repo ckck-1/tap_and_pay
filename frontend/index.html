@@ -9,20 +9,15 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
-        
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .glass { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
         .scanner-ring { animation: ripple 2s infinite; }
-        
-        @keyframes ripple {
-            0% { transform: scale(0.8); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
+        @keyframes ripple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
     </style>
 </head>
-<body class="bg-[#f8fafc] text-slate-900 min-h-screen">
+<body class="text-slate-900 min-h-screen">
+
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" class="fixed inset-0 bg-slate-900 bg-opacity-95 flex items-center justify-center z-[200]">
     <div class="bg-white rounded-3xl p-8 w-[360px] flex flex-col gap-6 shadow-2xl">
@@ -36,7 +31,8 @@
 
 <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
 
-<div class="max-w-6xl mx-auto p-4 md:p-8">
+<div class="max-w-7xl mx-auto p-4 md:p-8">
+    <!-- HEADER -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div class="flex items-center gap-3">
             <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-200">
@@ -66,6 +62,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <!-- LEFT PANEL: CARD + LOG -->
         <div class="lg:col-span-5 flex flex-col gap-6">
+            <!-- CARD DISPLAY -->
             <div class="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-white relative overflow-hidden h-full flex flex-col justify-center min-h-[400px]" id="card-context">
                 <div id="no-card" class="relative z-10 flex flex-col items-center text-center">
                     <div class="relative w-32 h-32 mb-8">
@@ -102,6 +99,7 @@
                 </div>
             </div>
 
+            <!-- LOG -->
             <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl flex-grow">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
@@ -118,234 +116,68 @@
             </div>
         </div>
 
-        <!-- RIGHT PANEL: PAYMENT, TOP-UP, E-COMMERCE -->
+        <!-- RIGHT PANEL: TOP-UP + PRODUCTS -->
         <div class="lg:col-span-7 flex flex-col gap-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- TOP-UP SECTION -->
-                <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-                            <i data-lucide="wallet" class="w-6 h-6"></i>
-                        </div>
-                        <h3 class="font-bold text-slate-800 tracking-tight">Top-up</h3>
+            <!-- TOP-UP -->
+            <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+                        <i data-lucide="wallet" class="w-6 h-6"></i>
                     </div>
-                    <div class="space-y-4 h-full flex flex-col justify-between">
-                        <div class="relative">
-                            <input type="number" id="top-amt" placeholder="0.00" class="w-full p-5 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none text-2xl font-bold transition-all">
-                            <span class="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">RWF</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 px-2 font-medium">Verify customer identification before adding digital funds.</p>
-                        <button onclick="doAction('topup')" class="w-full py-5 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-xl shadow-emerald-100">DEPOSIT FUNDS</button>
-                    </div>
-                </section>
+                    <h3 class="font-bold text-slate-800 tracking-tight text-lg">Top-up</h3>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <input type="number" id="top-amt" placeholder="0.00" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 focus:ring-2 focus:ring-emerald-500 outline-none text-lg font-bold transition-all">
+                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none">RWF</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-2 px-2 font-medium">Verify customer identification before adding digital funds.</p>
+                <button onclick="doAction('topup')" class="w-full mt-4 py-3 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-xl shadow-emerald-100">DEPOSIT FUNDS</button>
+            </section>
 
-                <!-- E-COMMERCE PRODUCTS SECTION -->
-                <section class="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-white">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-                            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-                        </div>
-                        <h3 class="font-bold text-slate-800 tracking-tight">Products</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
-                            <h4 class="font-semibold text-slate-900">Product A</h4>
-                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">500</span> RWF</p>
-                            <button onclick="buyProduct('Product A', 500)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
-                        </div>
-                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
-                            <h4 class="font-semibold text-slate-900">Product B</h4>
-                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">1200</span> RWF</p>
-                            <button onclick="buyProduct('Product B', 1200)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
-                        </div>
-                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
-                            <h4 class="font-semibold text-slate-900">Product C</h4>
-                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">800</span> RWF</p>
-                            <button onclick="buyProduct('Product C', 800)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
-                        </div>
-                        <div class="border rounded-2xl p-4 flex flex-col gap-2">
-                            <h4 class="font-semibold text-slate-900">Product D</h4>
-                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">1500</span> RWF</p>
-                            <button onclick="buyProduct('Product D', 1500)" class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
+            <!-- PRODUCTS GRID -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Example Product Card -->
+                <template id="product-card-template">
+                    <div class="border rounded-2xl overflow-hidden shadow hover:shadow-lg transition cursor-pointer flex flex-col">
+                        <img src="" alt="Product Image" class="w-full h-36 object-cover">
+                        <div class="p-4 flex flex-col gap-2">
+                            <h4 class="font-semibold text-slate-900 text-lg"></h4>
+                            <p class="text-slate-500 text-sm">Price: <span class="font-bold">0</span> RWF</p>
+                            <button class="py-2 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition">Buy</button>
                         </div>
                     </div>
-                </section>
-            </div>
+                </template>
+            </section>
         </div>
     </div>
 </div>
 
 <script>
-async function login() {
-    const uid = document.getElementById('login-uid').value.trim();
-    const pass = document.getElementById('login-pass').value.trim();
-    const msg = document.getElementById('login-msg');
-
-    if (!uid || !pass) {
-        msg.innerText = "Username and PIN required";
-        msg.classList.remove('hidden');
-        return;
-    }
-
-    try {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ uid, passcode: pass })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            document.getElementById('login-overlay').classList.add('hidden');
-            curUid = data.card.uid;
-            showCard(data.card);
-            addLog(`Logged in as ${data.card.holder_name}`, 'success');
-        } else {
-            msg.innerText = data.error || "Login failed";
-            msg.classList.remove('hidden');
-        }
-    } catch (err) {
-        msg.innerText = "Server error";
-        msg.classList.remove('hidden');
-        console.error(err);
-    }
-}
-
+lucide.createIcons();
 const socket = io();
 let curUid = null;
 let removalCountdown = null;
 let countdownValue = 5;
 
-lucide.createIcons();
+const products = [
+    { name: "Product A", price: 500, img: "https://picsum.photos/id/1011/400/300" },
+    { name: "Product B", price: 1200, img: "https://picsum.photos/id/1012/400/300" },
+    { name: "Product C", price: 800, img: "https://picsum.photos/id/1013/400/300" },
+    { name: "Product D", price: 1500, img: "https://picsum.photos/id/1015/400/300" },
+];
 
-socket.on('connect', () => {
-    const el = document.getElementById('status');
-    el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> MQTT CONNECTED';
-    el.className = 'flex items-center gap-2 text-[11px] font-bold text-emerald-600';
+// Render products dynamically
+const grid = document.querySelector('section.grid');
+const template = document.getElementById('product-card-template');
+products.forEach(p => {
+    const clone = template.content.cloneNode(true);
+    clone.querySelector('img').src = p.img;
+    clone.querySelector('h4').innerText = p.name;
+    clone.querySelector('span').innerText = p.price.toLocaleString();
+    clone.querySelector('button').onclick = () => buyProduct(p.name, p.price);
+    grid.appendChild(clone);
 });
-
-socket.on('card_scanned', (data) => {
-    if (removalCountdown) {
-        clearInterval(removalCountdown);
-        removalCountdown = null;
-        document.getElementById('countdown-text').classList.add('hidden');
-        document.getElementById('no-card-text').innerText = "Ready to Scan";
-    }
-    curUid = data.uid;
-    if (data.exists) {
-        showCard(data.card);
-        addLog(`Recognized: ${data.card.holder_name} (RWF ${data.card.balance})`, 'success');
-        document.getElementById('reg-modal').classList.add('hidden');
-    } else {
-        document.getElementById('reg-uid').innerText = data.uid;
-        document.getElementById('reg-modal').classList.remove('hidden');
-        addLog(`Unknown card detected: ${data.uid}`, 'warn');
-    }
-});
-
-socket.on('card_balance', (data) => {
-    if (data.uid === curUid) {
-        document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
-        addLog(`Remote Balance Update: RWF ${data.new_balance}`, 'info');
-    }
-});
-
-socket.on('card_removed', (data) => {
-    addLog(`Device connection lost for ${data.uid}`, 'error');
-    countdownValue = 5;
-    document.getElementById('no-card-text').innerText = "Card Lost!";
-    const countdownEl = document.getElementById('countdown-text');
-    countdownEl.classList.remove('hidden');
-    countdownEl.innerText = `Session expires in ${countdownValue}s`;
-
-    removalCountdown = setInterval(() => {
-        countdownValue--;
-        if (countdownValue > 0) {
-            countdownEl.innerText = `Session expires in ${countdownValue}s`;
-        } else {
-            clearInterval(removalCountdown);
-            removalCountdown = null;
-            curUid = null;
-            document.getElementById('no-card').classList.remove('hidden');
-            document.getElementById('active-card').classList.add('hidden');
-            document.getElementById('view-name').innerText = '---';
-            document.getElementById('view-uid').innerText = 'UID: ---';
-            document.getElementById('view-balance').innerText = '0';
-            document.getElementById('reg-modal').classList.add('hidden');
-            document.getElementById('countdown-text').classList.add('hidden');
-            document.getElementById('no-card-text').innerText = "Ready to Scan";
-            addLog('System reset: Session closed.');
-        }
-    }, 1000);
-});
-
-function showCard(card) {
-    document.getElementById('no-card').classList.add('hidden');
-    document.getElementById('active-card').classList.remove('hidden');
-    document.getElementById('view-name').innerText = card.holder_name;
-    document.getElementById('view-uid').innerText = `UID: ${card.uid}`;
-    document.getElementById('view-balance').innerText = card.balance.toLocaleString();
-}
-
-function addLog(msg, type = 'info') {
-    const log = document.getElementById('log');
-    const colors = { info: 'text-slate-400', success: 'text-emerald-400', warn: 'text-amber-400', error: 'text-rose-400' };
-    const div = document.createElement('div');
-    div.className = `mono text-[11px] ${colors[type] || 'text-slate-400'}`;
-    div.textContent = `_ ${msg}`;
-    log.prepend(div);
-}
-
-function showToast(msg, type = 'info') {
-    const colors = { info: 'bg-slate-800 text-white', success: 'bg-emerald-600 text-white', error: 'bg-rose-500 text-white', warn: 'bg-amber-500 text-white' };
-    const toast = document.createElement('div');
-    toast.className = `px-4 py-3 rounded-xl shadow-lg ${colors[type] || colors.info} font-bold text-sm`;
-    toast.innerText = msg;
-    document.getElementById('toast-container').appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 4000);
-}
-
-async function doAction(action) {
-    if (!curUid) { showToast('No active card', 'error'); return; }
-    if (action === 'topup') {
-        const amt = parseInt(document.getElementById('top-amt').value);
-        if (!amt || amt <= 0) { showToast('Invalid amount', 'error'); return; }
-        const res = await fetch('/api/topup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ uid: curUid, amount: amt })
-        });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
-            showToast(`Added RWF ${amt}`, 'success');
-            addLog(`Top-up: RWF ${amt}`, 'success');
-        } else {
-            showToast(data.error, 'error');
-            addLog(`Top-up failed: ${data.error}`, 'error');
-        }
-    }
-}
-
-async function buyProduct(name, price) {
-    if (!curUid) { showToast('No active card', 'error'); return; }
-    if (!confirm(`Buy ${name} for RWF ${price}?`)) return;
-
-    const res = await fetch('/api/pay', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ uid: curUid, amount: price, passcode: '' })
-    });
-    const data = await res.json();
-    if (data.success) {
-        document.getElementById('view-balance').innerText = data.new_balance.toLocaleString();
-        showToast(`${name} purchased! -${price} RWF`, 'success');
-        addLog(`Bought ${name} for RWF ${price}`, 'success');
-    } else {
-        showToast(data.error, 'error');
-        addLog(`Purchase failed: ${data.error}`, 'error');
-    }
-}
 </script>
+
 </body>
 </html>
