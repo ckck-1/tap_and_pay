@@ -23,6 +23,56 @@
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-900 min-h-screen">
+    <!-- Add this inside <body> at the very top -->
+<div id="login-overlay" class="fixed inset-0 bg-slate-900 bg-opacity-95 flex items-center justify-center z-[200]">
+    <div class="bg-white rounded-3xl p-8 w-[360px] flex flex-col gap-6 shadow-2xl">
+        <h2 class="text-2xl font-bold text-slate-900 text-center">Terminal Login</h2>
+        <input type="text" id="login-uid" placeholder="Username" class="w-full p-4 rounded-2xl border ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-600 outline-none font-semibold">
+        <input type="password" id="login-pass" placeholder="PIN" class="w-full p-4 rounded-2xl border ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-600 outline-none font-semibold">
+        <button onclick="login()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all active:scale-[0.98]">LOGIN</button>
+        <div id="login-msg" class="text-rose-500 text-sm text-center hidden"></div>
+    </div>
+</div>
+
+<script>
+async function login() {
+    const uid = document.getElementById('login-uid').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    const msg = document.getElementById('login-msg');
+
+    if (!uid || !pass) {
+        msg.innerText = "Username and PIN required";
+        msg.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ uid, passcode: pass })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // Hide login overlay
+            document.getElementById('login-overlay').classList.add('hidden');
+
+            // Optional: show default card if it is the default user
+            curUid = data.card.uid;
+            showCard(data.card);
+            addLog(`Logged in as ${data.card.holder_name}`, 'success');
+        } else {
+            msg.innerText = data.error || "Login failed";
+            msg.classList.remove('hidden');
+        }
+    } catch (err) {
+        msg.innerText = "Server error";
+        msg.classList.remove('hidden');
+        console.error(err);
+    }
+}
+</script>
     
     <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3"></div>
 

@@ -24,7 +24,7 @@ let db;
             driver: sqlite3.Database
         });
 
-        // We explicitly define the columns here
+        // Create tables
         await db.exec(`
             CREATE TABLE IF NOT EXISTS cards (
                 uid TEXT PRIMARY KEY, 
@@ -35,22 +35,41 @@ let db;
             CREATE TABLE IF NOT EXISTS transactions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 uid TEXT,
-                type TEXT, -- This was the missing column
+                type TEXT,
                 amount REAL,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `);
         console.log("✓ Database Connected & Tables Verified");
 
+        // Add default user if not exists
+        const defaultUID = 'login';
+        const defaultPasscode = '1234';
+        const existing = await db.get('SELECT * FROM cards WHERE uid = ?', [defaultUID]);
+        if (!existing) {
+            const hashed = await bcrypt.hash(defaultPasscode, 10);
+            await db.run(
+                'INSERT INTO cards (uid, holder_name, balance, passcode) VALUES (?, ?, ?, ?)',
+                [defaultUID, 'Default User', 0, hashed]
+            );
+            await db.run(
+                'INSERT INTO transactions (uid, type, amount) VALUES (?, ?, ?)',
+                [defaultUID, 'REGISTRATION', 0]
+            );
+            console.log("✅ Default user 'login' created with passcode '1234'");
+        }
+
+        // Start server
         server.listen(9223, '0.0.0.0', () => {
             console.log(`🚀 Server: http://localhost:9223`);
         });
+
     } catch (err) {
         console.error("Database Setup Error:", err);
     }
 })();
 
-// 2. MQTT Logic
+// MQTT Setup
 const mqttClient = mqtt.connect("mqtt://broker.benax.rw");
 mqttClient.on('connect', () => {
     mqttClient.subscribe(`rfid/${TEAM_ID}/card/status`);
@@ -63,34 +82,28 @@ mqttClient.on('message', async (topic, message) => {
         if (data.status === "detected") {
             const card = await db.get('SELECT * FROM cards WHERE uid = ?', [data.uid]);
             io.emit('card_scanned', { uid: data.uid, exists: !!card, card });
-        }
-        else if (data.status === "removed") {
+        } else if (data.status === "removed") {
             io.emit('card_removed', { uid: data.uid });
         }
     } catch (e) { console.error("MQTT Parsing Error:", e.message); }
 });
 
-// 3. API Routes (Fixed for Stability)
+// API Routes
+
+// 1. Register
 app.post('/api/register', async (req, res) => {
     const { uid, holder_name, amount, passcode } = req.body;
-    
     try {
         const hashed = await bcrypt.hash(passcode, 10);
-        
-        // Use a simple transaction wrap
         await db.run('BEGIN TRANSACTION');
-
         await db.run(
             'INSERT INTO cards (uid, holder_name, balance, passcode) VALUES (?, ?, ?, ?)', 
             [uid, holder_name, amount || 0, hashed]
         );
-        
-        // This matches the CREATE TABLE columns exactly now
         await db.run(
             'INSERT INTO transactions (uid, type, amount) VALUES (?, ?, ?)', 
             [uid, 'REGISTRATION', amount || 0]
         );
-
         await db.run('COMMIT');
         console.log(`✅ Registered: ${holder_name}`);
         res.json({ success: true });
@@ -101,20 +114,14 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// 2. Topup
 app.post('/api/topup', async (req, res) => {
     const { uid, amount } = req.body;
     try {
         await db.run('BEGIN TRANSACTION');
-        
-        // Update the user's money
         await db.run('UPDATE cards SET balance = balance + ? WHERE uid = ?', [amount, uid]);
-        
-        // Record the transaction - WE ADDED 'TOPUP' AS THE TYPE
-        await db.run('INSERT INTO transactions (uid, type, amount) VALUES (?, ?, ?)', 
-            [uid, 'TOPUP', amount]);
-        
+        await db.run('INSERT INTO transactions (uid, type, amount) VALUES (?, ?, ?)', [uid, 'TOPUP', amount]);
         await db.run('COMMIT');
-
         const updated = await db.get('SELECT balance FROM cards WHERE uid = ?', [uid]);
         io.emit('card_balance', { uid, new_balance: updated.balance });
         res.json({ success: true, newBalance: updated.balance });
@@ -125,25 +132,19 @@ app.post('/api/topup', async (req, res) => {
     }
 });
 
+// 3. Payment
 app.post('/api/pay', async (req, res) => {
     const { uid, amount, passcode } = req.body;
     try {
         const card = await db.get('SELECT * FROM cards WHERE uid = ?', [uid]);
         if (!card) return res.status(404).json({ error: "Card not found" });
-
         const match = await bcrypt.compare(passcode, card.passcode);
         if (!match) return res.status(401).json({ error: "Wrong PIN" });
         if (card.balance < amount) return res.status(400).json({ error: "Insufficient balance" });
 
         await db.run('BEGIN TRANSACTION');
-        
-        // Deduct the money
         await db.run('UPDATE cards SET balance = balance - ? WHERE uid = ?', [amount, uid]);
-        
-        // Record the transaction - WE ADDED 'PAYMENT' AS THE TYPE
-        await db.run('INSERT INTO transactions (uid, type, amount) VALUES (?, ?, ?)', 
-            [uid, 'PAYMENT', amount]);
-
+        await db.run('INSERT INTO transactions (uid, type, amount) VALUES (?, ?, ?)', [uid, 'PAYMENT', amount]);
         await db.run('COMMIT');
 
         const updated = await db.get('SELECT balance FROM cards WHERE uid = ?', [uid]);
@@ -153,5 +154,27 @@ app.post('/api/pay', async (req, res) => {
         await db.run('ROLLBACK');
         console.error("Payment Error:", err.message);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// 4. Login
+app.post('/api/login', async (req, res) => {
+    const { uid, passcode } = req.body;
+    try {
+        const card = await db.get('SELECT uid, holder_name, balance, passcode FROM cards WHERE uid = ?', [uid]);
+        if (!card) return res.status(404).json({ error: 'Card not found' });
+        const match = await bcrypt.compare(passcode, card.passcode);
+        if (!match) return res.status(401).json({ error: 'Invalid PIN' });
+        res.json({
+            success: true,
+            card: {
+                uid: card.uid,
+                holder_name: card.holder_name,
+                balance: card.balance
+            }
+        });
+    } catch (err) {
+        console.error("Login Error:", err.message);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
