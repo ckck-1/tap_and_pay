@@ -1,0 +1,9 @@
+
+RST: - D3
+SDA: - D4
+SCK: - D5
+MISO: - D6
+MOSI: - D7
+
+3V3: - 3V3
+GND: - GND

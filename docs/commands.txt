@@ -1,0 +1,5 @@
+
+making a nohup command: npx pm2 start backend.js --name amam
+
+password
+Z9!2m@R7

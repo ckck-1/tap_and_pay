@@ -1,0 +1,29 @@
+# Backend
+backend/node_modules/
+backend/database.sqlite
+backend/package-lock.json
+backend/*.log
+
+# Environment
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arduino build files
+*.bin
+*.elf
+*.hex

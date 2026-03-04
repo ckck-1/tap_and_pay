@@ -1,0 +1,32 @@
+{
+  "name": "tap-and-pay",
+  "version": "1.0.0",
+  "description": "> A premium, real-time RFID management ecosystem powered by Node.js and IoT protocols.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "src": "src",
+    "arduino": "arduino"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "morgan": "^1.10.1",
+    "mqtt": "^5.15.0",
+    "nodemon": "^3.1.14",
+    "socket.io": "^4.8.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}
