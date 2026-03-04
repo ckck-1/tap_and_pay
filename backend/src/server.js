@@ -189,9 +189,9 @@ app.post("/api/topup", async (req, res) => {
     }
 });
 
-/* -------- PAYMENT -------- */
+/* -------- PAYMENT (NO PIN REQUIRED) -------- */
 app.post("/api/pay", async (req, res) => {
-    const { uid, amount, passcode } = req.body;
+    const { uid, amount } = req.body; // remove passcode
 
     try {
         const card = await db.get(
@@ -201,10 +201,6 @@ app.post("/api/pay", async (req, res) => {
 
         if (!card)
             return res.status(404).json({ error: "Card not found" });
-
-        const match = await bcrypt.compare(passcode, card.passcode);
-        if (!match)
-            return res.status(401).json({ error: "Wrong PIN" });
 
         if (card.balance < amount)
             return res.status(400).json({ error: "Insufficient balance" });
