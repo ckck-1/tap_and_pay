@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TapPay | Terminal</title>
+    <!-- Tailwind (use in dev, switch to PostCSS for prod) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO CDN -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-QP3lX6a4Q7/r+owFq+UibfXJp0r0sZkg+QnFbDeQ2z6UQGq8u+YdRkJXqXdxQ8L0" crossorigin="anonymous"></script>
+    <!-- Lucide icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
@@ -36,7 +39,7 @@
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
         <div class="flex items-center gap-3">
             <div class="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-200">
-                <i data-lucide="contactless" class="w-6 h-6 text-white"></i>
+                <i data-lucide="credit-card" class="w-6 h-6 text-white"></i>
             </div>
             <div>
                 <h1 class="text-2xl font-800 tracking-tight flex items-center gap-2">
@@ -136,7 +139,6 @@
 
             <!-- PRODUCTS GRID -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Example Product Card -->
                 <template id="product-card-template">
                     <div class="border rounded-2xl overflow-hidden shadow hover:shadow-lg transition cursor-pointer flex flex-col">
                         <img src="" alt="Product Image" class="w-full h-36 object-cover">
@@ -154,11 +156,13 @@
 
 <script>
 lucide.createIcons();
-const socket = io();
-let curUid = null;
-let removalCountdown = null;
-let countdownValue = 5;
 
+// Socket.IO connection
+const socket = io(); // make sure your server runs Socket.IO
+
+let curUid = null;
+
+// Sample products
 const products = [
     { name: "Product A", price: 500, img: "https://picsum.photos/id/1011/400/300" },
     { name: "Product B", price: 1200, img: "https://picsum.photos/id/1012/400/300" },
@@ -174,9 +178,45 @@ products.forEach(p => {
     clone.querySelector('img').src = p.img;
     clone.querySelector('h4').innerText = p.name;
     clone.querySelector('span').innerText = p.price.toLocaleString();
-    clone.querySelector('button').onclick = () => buyProduct(p.name, p.price);
+    clone.querySelector('button').onclick = () => alert(`Buying ${p.name} for ${p.price} RWF`);
     grid.appendChild(clone);
 });
+
+// LOGIN FUNCTION
+window.login = async function() {
+    const uid = document.getElementById('login-uid').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    const msg = document.getElementById('login-msg');
+
+    if (!uid || !pass) {
+        msg.innerText = "Username and PIN required";
+        msg.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        // Example login request
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ uid, passcode: pass })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('login-overlay').classList.add('hidden');
+            curUid = uid;
+            alert(`Logged in as ${uid}`);
+        } else {
+            msg.innerText = data.error || "Login failed";
+            msg.classList.remove('hidden');
+        }
+    } catch (err) {
+        msg.innerText = "Server error";
+        msg.classList.remove('hidden');
+        console.error(err);
+    }
+};
 </script>
 
 </body>
