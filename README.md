@@ -23,14 +23,14 @@ A complete IoT-based cashless payment solution using ESP8266, RFID cards, and MQ
 
 **MQTT Topics**
 
-| Topic | Direction | Description |
-|-------|-----------|-------------|
-| `rfid/<team>/card/status` | ESP → Backend | Card detected/removed events |
-| `rfid/<team>/card/balance` | ESP → Backend | Balance updates |
-| `rfid/<team>/card/topup` | Backend → ESP | Recharge commands |
-| `rfid/<team>/card/payment` | Backend → ESP | Payment confirmations |
-| `rfid/<team>/device/health` | ESP → Backend | Device telemetry |
-| `rfid/<team>/device/status` | ESP → Backend | Online/offline LWT |
+| Topic                       | Direction     | Description                  |
+| --------------------------- | ------------- | ---------------------------- |
+| `rfid/<team>/card/status`   | ESP → Backend | Card detected/removed events |
+| `rfid/<team>/card/balance`  | ESP → Backend | Balance updates              |
+| `rfid/<team>/card/topup`    | Backend → ESP | Recharge commands            |
+| `rfid/<team>/card/payment`  | Backend → ESP | Payment confirmations        |
+| `rfid/<team>/device/health` | ESP → Backend | Device telemetry             |
+| `rfid/<team>/device/status` | ESP → Backend | Online/offline LWT           |
 
 **How It Works**
 
@@ -50,4 +50,4 @@ frontend/index.html      - Single-page dashboard with Socket.IO
 ```
 
 **Team ID**: `team-cr7`
-http://157.173.101.159:9221/
+http://157.173.101.159:9223/

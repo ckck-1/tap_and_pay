@@ -42,8 +42,8 @@ let db;
         `);
         console.log("✓ Database Connected & Tables Verified");
 
-        server.listen(8208, '0.0.0.0', () => {
-            console.log(`🚀 Server: http://localhost:8208`);
+        server.listen(9223, '0.0.0.0', () => {
+            console.log(`🚀 Server: http://localhost:9223`);
         });
     } catch (err) {
         console.error("Database Setup Error:", err);
